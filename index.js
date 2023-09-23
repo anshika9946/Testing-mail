@@ -30,7 +30,7 @@ const Subscriber = require('./models/Subscriber');
 
 // Serve the email collection form
 app.get('/', (req, res) => {
-  res.sendFile(__dirname + '/views/signUp.html');
+  res.sendFile(__dirname + '/views/index.html');
 });
 
 // Handle form submissions
