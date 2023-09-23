@@ -8,22 +8,29 @@ require('dotenv').config();
 
 
 const app = express();
-const port = 5179;
+const port = 80;
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static('views'));
 
 // MongoDB setup
-mongoose.connect(`mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@cluster0.opcblnx.mongodb.net/mail?retryWrites=true&w=majority`, { useNewUrlParser: true, useUnifiedTopology: true });
-const db = mongoose.connection;
-db.on('error', console.error.bind(console, 'MongoDB connection error:'));
+const connectToMongoDB = async () => {
+    try {
+      await mongoose.connect('mongodb+srv://anshika:Anshika1@cluster0.opcblnx.mongodb.net/mail?retryWrites=true&w=majority', { useNewUrlParser: true, useUnifiedTopology: true });
+      console.log('Connected to MongoDB');
+    } catch (error) {
+      console.error('MongoDB connection error:', error);
+    }
+  };
+  
+  connectToMongoDB();
 
 // Subscriber model
 const Subscriber = require('./models/Subscriber');
 
 // Serve the email collection form
 app.get('/', (req, res) => {
-  res.sendFile(__dirname + '/views/signup.html');
+  res.sendFile(__dirname + '/views/signUp.html');
 });
 
 // Handle form submissions
@@ -63,7 +70,7 @@ app.post('/subscribe', async (req, res) => {
       from: 'agarwal.anshika9946@gmail.com',
       to: email,
       subject: 'Email Verification',
-      text: `To verify your email address, click the following link: http://localhost:5179/verify/${verificationToken}`,
+      text: `ThankYou for Subscribing. To verify your email address, click the following link: http://localhost/verify/${verificationToken}`,
     };
 
     transporter.sendMail(mailOptions, (error, info) => {
@@ -81,7 +88,29 @@ app.post('/subscribe', async (req, res) => {
   }
 });
 
-// sending mail to all
+//sending mail to all
+app.get('/verify/:token', async (req, res) => {
+    const token = req.params.token;
+    try {
+        // Find the subscriber with the given token
+        const subscriber = await Subscriber.findOne({ verificationToken: token });
+    
+        if (!subscriber) {
+          return res.status(404).send('Invalid verification token.');
+        }
+    
+        // Update the 'isVerified' field to 'true'
+        subscriber.isVerified = true;
+        await subscriber.save();
+    
+        // Provide a response to the user
+        res.send('Email verified successfully.');
+      } catch (error) {
+        console.error(error);
+        res.status(500).send('An error occurred during email verification.');
+      }
+    });
+    
 
 app.get('/send-newsletter', (req, res) => {
     // Render a form for composing the newsletter
@@ -125,6 +154,7 @@ app.get('/send-newsletter', (req, res) => {
       res.status(500).send('An error occurred while sending the newsletter.');
     }
   });
+
   
 
 app.listen(port, () => {
