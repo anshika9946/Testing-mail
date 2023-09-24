@@ -118,36 +118,38 @@ app.get('/send-newsletter', (req, res) => {
   });
 
   app.post('/send-newsletter', async (req, res) => {
-    const { subject, message } = req.body;
+    const { subject, newsletterContent } = req.body; // Read the newsletter content
   
+    console.log('Received newsletter content:');
+  console.log(newsletterContent);
+
     try {
-
-        const transporter = nodemailer.createTransport({
-            service: 'gmail',
-            auth: {
-              user: 'agarwal.anshika9946@gmail.com',
-              pass: 'sbjl ebbm gfbl pkyw',
-            },
-          });
-
+      const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+          user: 'agarwal.anshika9946@gmail.com',
+          pass: 'sbjl ebbm gfbl pkyw',
+        },
+      });
+  
       // Retrieve all verified subscribers from the database
       const subscribers = await Subscriber.find({ isVerified: true });
   
       // Loop through the subscribers and send the newsletter email to each one
       for (const subscriber of subscribers) {
         const { email } = subscriber;
-        
-        // Send the newsletter email to the subscriber's email address
+  
         const mailOptions = {
           from: 'agarwal.anshika9946@gmail.com',
           to: email,
           subject: subject,
-          text: message,
+          // Use the HTML content from the textarea as the email body
+          html: newsletterContent,
         };
   
         await transporter.sendMail(mailOptions);
       }
-  
+  console.log('Newsletter sent successfully.');
       res.send('Newsletter sent to all subscribers.');
     } catch (error) {
       console.error(error);

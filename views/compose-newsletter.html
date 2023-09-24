@@ -8,10 +8,11 @@
   <form action="/send-newsletter" method="POST">
     <label for="subject">Subject:</label>
     <input type="text" id="subject" name="subject" required><br><br>
-    
-    <label for="message">Message:</label>
-    <textarea id="message" name="message" required></textarea><br><br>
-    
+
+    <!-- Add a textarea for the HTML content of your newsletter -->
+    <label for="newsletterContent">Newsletter Content (HTML):</label>
+    <textarea id="newsletterContent" name="newsletterContent" required></textarea><br><br>
+
     <input type="submit" value="Send Newsletter">
   </form>
 </body>
