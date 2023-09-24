@@ -5,6 +5,7 @@ const validator = require('validator');
 const nodemailer = require('nodemailer');
 const uuid = require('uuid');
 require('dotenv').config();
+const fs = require('fs');
 
 
 const app = express();
@@ -47,7 +48,7 @@ app.post('/subscribe', async (req, res) => {
     const existingSubscriber = await Subscriber.findOne({ email });
 
     if (existingSubscriber) {
-      return res.status(400).send('Email address is already subscribed.');
+      return res.status(400).sendFile(__dirname + '/views/already-subscribed.html');
     }
 
     // Generate a unique verification token
@@ -65,26 +66,27 @@ app.post('/subscribe', async (req, res) => {
         pass: 'sbjl ebbm gfbl pkyw',
       },
     });
+    const verificationEmailTemplate = fs.readFileSync('./views/verification-email.html', 'utf-8');
 
     const mailOptions = {
       from: 'agarwal.anshika9946@gmail.com',
       to: email,
       subject: 'Email Verification',
-      text: `ThankYou for Subscribing. To verify your email address, click the following link: http://localhost/verify/${verificationToken}`,
+      html: verificationEmailTemplate.replace('{{verificationToken}}', verificationToken),
     };
 
     transporter.sendMail(mailOptions, (error, info) => {
       if (error) {
         console.error(error);
-        res.status(500).send('An error occurred while sending the verification email.');
+        res.status(500).sendFile(__dirname + '/views/error.html');
       } else {
         console.log('Verification email sent: ' + info.response);
-        res.send('Please check your email for verification.');
+        res.sendFile(__dirname + '/views/verify.html');
       }
     });
   } catch (error) {
     console.error(error);
-    res.status(500).send('An error occurred during subscription.');
+    res.status(500).sendFile(__dirname + '/views/error.html');
   }
 });
 
@@ -104,7 +106,7 @@ app.get('/verify/:token', async (req, res) => {
         await subscriber.save();
     
         // Provide a response to the user
-        res.send('Email verified successfully.');
+        res.sendFile(__dirname + '/views/subscription-success.html');
       } catch (error) {
         console.error(error);
         res.status(500).send('An error occurred during email verification.');
