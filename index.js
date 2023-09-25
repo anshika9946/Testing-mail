@@ -89,6 +89,39 @@ app.post('/subscribe', async (req, res) => {
     res.status(500).sendFile(__dirname + '/views/error.html');
   }
 });
+app.get('/unsubscribe', async (req, res) => {
+    const { email } = req.query;
+  
+    // You can display a confirmation page here
+    // This page can have a confirmation button to finalize the unsubscribe
+    // When the user confirms, you can update the subscriber's status
+  
+    // Example confirmation page:
+    res.sendFile(__dirname + '/views/unsubscribe.html');
+  });
+  app.post('/confirm-unsubscribe', async (req, res) => {
+    const { email } = req.body;
+  
+    try {
+      // Find the subscriber by email
+      const subscriber = await Subscriber.findOne({ email });
+  
+      if (!subscriber) {
+        return res.status(404).send('Subscriber not found.');
+      }
+  
+      // Update the subscriber's status to indicate they are unsubscribed
+      subscriber.isSubscribed = false;
+      await subscriber.save();
+  
+      res.send('You have been unsubscribed.');
+    } catch (error) {
+      console.error(error);
+      res.status(500).send('An error occurred during unsubscribe.');
+    }
+  });
+  
+    
 
 //sending mail to all
 app.get('/verify/:token', async (req, res) => {
