@@ -3,21 +3,25 @@ const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const validator = require('validator');
 const nodemailer = require('nodemailer');
+const cors = require('cors');
 const uuid = require('uuid');
 require('dotenv').config();
 const fs = require('fs');
-
+const path = require('path');
 
 const app = express();
-const port = 80;
-
+const port = process.env.PORT || 80;
+app.use(cors({
+  origin: 'https://keechu.netlify.app', // Update with your Netlify app's URL
+}));
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(express.static('views'));
+// app.use(express.static('views'));
+// app.use(express.static(path.join(__dirname, 'build'))); 
 
 // MongoDB setup
 const connectToMongoDB = async () => {
     try {
-      await mongoose.connect(`mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@cluster0.opcblnx.mongodb.net/mail?retryWrites=true&w=majority`, { useNewUrlParser: true, useUnifiedTopology: true });
+      await mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true });
       console.log('Connected to MongoDB');
     } catch (error) {
       console.error('MongoDB connection error:', error);
@@ -62,14 +66,14 @@ app.post('/subscribe', async (req, res) => {
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
-        user: 'agarwal.anshika9946@gmail.com',
-        pass: 'sbjl ebbm gfbl pkyw',
+        user: process.env.GMAIL_USER,
+        pass: process.env.GMAIL_PASS,
       },
     });
     const verificationEmailTemplate = fs.readFileSync('./views/verification-email.html', 'utf-8');
 
     const mailOptions = {
-      from: 'agarwal.anshika9946@gmail.com',
+      from: process.env.GMAIL_USER,
       to: email,
       subject: 'Email Verification',
       html: verificationEmailTemplate.replace('{{verificationToken}}', verificationToken),
@@ -162,8 +166,8 @@ app.get('/send-newsletter', (req, res) => {
       const transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
-          user: 'agarwal.anshika9946@gmail.com',
-          pass: 'sbjl ebbm gfbl pkyw',
+          user: process.env.GMAIL_USER,
+          pass: process.env.GMAIL_PASS,
         },
       });
   
@@ -175,7 +179,7 @@ app.get('/send-newsletter', (req, res) => {
         const { email } = subscriber;
   
         const mailOptions = {
-          from: 'agarwal.anshika9946@gmail.com',
+          from: process.env.GMAIL_USER,
           to: email,
           subject: subject,
           // Use the HTML content from the textarea as the email body
